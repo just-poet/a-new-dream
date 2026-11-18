@@ -685,6 +685,7 @@ function run() {
     );
   }
   function opening() {
+    ringRevealed = false;
     $("curtain").setAttribute("aria-hidden", "true");
     $("curtain").classList.remove("closed");
     $("curtain-message").hidden = true;

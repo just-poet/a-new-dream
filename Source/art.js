@@ -26,12 +26,12 @@ export function mat(color, glow = 0) {
 
 export const geo = {
   box: new T.BoxGeometry(1, 1, 1),
-  ball: new T.SphereGeometry(1, 18, 12),
+  ball: new T.SphereGeometry(1, 28, 20),
   gem: new T.IcosahedronGeometry(1, 0),
   leaf: new T.IcosahedronGeometry(1, 1),
-  cone: new T.ConeGeometry(1, 1, 8),
-  post: new T.CylinderGeometry(0.76, 1, 1, 10),
-  pipe: new T.CylinderGeometry(1, 1, 1, 12),
+  cone: new T.ConeGeometry(1, 1, 32),
+  post: new T.CylinderGeometry(0.76, 1, 1, 28),
+  pipe: new T.CylinderGeometry(1, 1, 1, 24),
   disk: new T.CircleGeometry(1, 28),
 };
 

@@ -1,8 +1,6 @@
 import * as T from "three";
 import { M, geo, mat, group, shape, ball, glow } from "./art.js";
-import { divineCat } from "./characters.js";
-import { realHuman as human, realHorse as horse } from "./real-characters.js";
-import { loadAssets } from "./assets.js";
+import { human, pigCat as horse, storyCat } from "./fairy-characters.js";
 import {
   prepareEnvironment,
   lighting,
@@ -10,7 +8,8 @@ import {
   textureRoom,
   textureCastle,
   texturePalaces,
-} from "./detail.js";
+  terrainHeight,
+} from "./fairy-detail.js";
 import { oldHouse, valley, ambushForest, castleWorld } from "./world.js";
 
 const $ = (id) => document.getElementById(id);
@@ -42,10 +41,7 @@ if (renderer) {
   $("choices").replaceChildren();
   $("line").textContent = "A new dream";
   $("detail").textContent = "Loading the world…";
-  loadAssets((count, total) => {
-    $("detail").textContent =
-      "Loading the world… " + Math.round((count / total) * 100) + "%";
-  })
+  Promise.resolve()
     .then(() => {
       prepareEnvironment(renderer);
       run();
@@ -102,6 +98,25 @@ function soundEngine() {
     },
     effect(type) {
       unlock();
+      if (type === "meow" && context) {
+        const now = context.currentTime,
+          osc = context.createOscillator(),
+          gain = context.createGain(),
+          filter = context.createBiquadFilter();
+        osc.type = "sawtooth";
+        filter.type = "lowpass";
+        filter.frequency.value = 1300;
+        osc.frequency.setValueAtTime(380, now);
+        osc.frequency.exponentialRampToValueAtTime(760, now + 0.2);
+        osc.frequency.exponentialRampToValueAtTime(260, now + 1.1);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(0.13, now + 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+        osc.connect(filter).connect(gain).connect(master);
+        osc.start(now);
+        osc.stop(now + 1.25);
+        return;
+      }
       const seq = {
         hit: [220, 392, 622],
         shoot: [110, 80],
@@ -232,11 +247,16 @@ function run() {
       next.hero = human(next.scene);
       if (name === "room") {
         next.npc = human(next.scene, "gothel");
-        next.cat = divineCat(next.scene);
+        next.cat = storyCat(next.scene);
         next.cat.root.visible = false;
       } else {
         next.mount = horse(next.scene);
         next.npc = human(next.scene, "eugene");
+      }
+      if (name === "castle") {
+        next.evilCat = storyCat(next.scene, true);
+        next.evilCat.root.visible = false;
+        next.decorateRamp?.();
       }
       cache.set(name, next);
     }
@@ -246,9 +266,9 @@ function run() {
     snap = true;
     ui.game.dataset.scene = name;
     if (name === "room") {
-      hero.root.position.set(player.x, 0, player.z);
+      hero.root.position.set(player.x, 0.079, player.z);
       hero.root.rotation.set(0, Math.PI, 0);
-      npc.root.position.set(0, 0, -1.35);
+      npc.root.position.set(0, 0.079, -1.35);
       npc.root.rotation.set(0, 0, 0);
     }
   }
@@ -347,8 +367,8 @@ function run() {
   function catAppears() {
     setStage("cat");
     cat.root.visible = true;
-    cat.root.scale.setScalar(0.7);
-    cat.root.position.set(1.62, 1.4, -0.36);
+    cat.root.scale.setScalar(1);
+    cat.root.position.set(1.62, 0.079, -0.36);
     audio.effect("ring");
     dialogue(
       "A very divine cat",
@@ -364,9 +384,9 @@ function run() {
     player.z = 1.72;
     lastSwing = -10;
     downAt = -10;
-    npc.root.position.set(0, 0, -1.35);
+    npc.root.position.set(0, 0.079, -1.35);
     npc.root.rotation.set(0, 0, 0);
-    hero.root.position.set(0, 0, 1.72);
+    hero.root.position.set(0, 0.079, 1.72);
     hero.weapon("pan");
     cat.root.visible = false;
     setStage("fight");
@@ -433,7 +453,7 @@ function run() {
       ((dodge ? 4.7 : 2.75) * dt) / (axisX && axisZ ? Math.SQRT2 : 1);
     player.x = M.clamp(player.x + axisX * speed, -2.38, 2.38);
     player.z = M.clamp(player.z + axisZ * speed, -2.65, 2.56);
-    hero.root.position.set(player.x, 0, player.z);
+    hero.root.position.set(player.x, 0.079, player.z);
     if (axisX || axisZ)
       hero.root.rotation.y = M.damp(
         hero.root.rotation.y,
@@ -471,13 +491,13 @@ function run() {
   function meetEugene() {
     setWorld("outside");
     setStage("meeting");
-    hero.root.position.set(1.44, 0, 1.25);
+    hero.root.position.set(1.44, 0.021, 1.25);
     hero.root.rotation.set(0, Math.PI * 0.27, 0);
     hero.weapon("none");
-    npc.root.position.set(3.02, 0, -0.18);
+    npc.root.position.set(3.02, 0.021, -0.18);
     npc.root.rotation.set(0, -0.75, 0);
-    mount.root.position.set(5.0, 0, -1.2);
-    mount.root.rotation.y = -0.35;
+    mount.root.position.set(4.8, terrainHeight(4.8, -1.2, true), -1.2);
+    mount.root.rotation.y = 2.5;
     dialogue(
       "Eugene",
       "WASSUP MY DARLING ! HAD A GOOD FUNN WITH UR MOTHER HEHE ! WELL NOW WE NEEDA GO SOMWHERE",
@@ -497,10 +517,10 @@ function run() {
     mount.riders.add(hero.root, npc.root);
     hero.root.position.set(0, mount.riderHeight ?? 1.06, front ? -0.26 : 0.44);
     hero.root.rotation.set(0, Math.PI, 0);
-    hero.root.scale.setScalar(0.82);
+    hero.root.scale.setScalar(0.81);
     npc.root.position.set(0, mount.riderHeight ?? 1.07, front ? 0.51 : -0.29);
     npc.root.rotation.set(0, Math.PI, 0);
-    npc.root.scale.setScalar(0.84);
+    npc.root.scale.setScalar(0.83);
   }
 
   function startForest() {
@@ -520,7 +540,7 @@ function run() {
     bandits = [22, 47, 74, 103, 132].map((distance, index) => {
       const person = human(world.scene, "bandit"),
         x = [-2.0, 2.1, -2.25, 2.45, 0][index];
-      person.root.position.set(x, 0, -distance - 6);
+      person.root.position.set(x, 0.021, -distance - 6);
       const button = document.createElement("button");
       button.className = "target";
       button.type = "button";
@@ -568,11 +588,15 @@ function run() {
   }
 
   function forestRide(dt) {
+    if (journey > 24 && !world.danceSeen) {
+      world.danceSeen = true;
+      toast("Balle balle! A little forest dance break.", 3.5);
+    }
     const nearest = bandits.find((e) => e.hp > 0);
     const blocked = nearest && journey >= nearest.distance - 15.5;
-    rideSpeed = blocked ? 0 : 5.1;
+    rideSpeed = blocked ? 0 : 10.6;
     journey = Math.min(154, journey + rideSpeed * dt);
-    mount.root.position.set(Math.sin(journey * 0.055) * 0.22, 0, -journey);
+    mount.root.position.set(Math.sin(journey * 0.055) * 0.22, 0.021, -journey);
     for (const [i, e] of bandits.entries()) {
       const offset = e.distance - journey;
       if (e.hp > 0) {
@@ -626,6 +650,7 @@ function run() {
       t = world.curve.getTangentAt(M.clamp(u, 0, 1));
     const side = new T.Vector3(-t.z, 0, t.x).normalize();
     mount.root.position.copy(p).addScaledVector(side, steer);
+    mount.root.position.y -= 0.034;
     const heading = Math.atan2(-t.x, -t.z);
     const diff = Math.atan2(
       Math.sin(heading - mount.root.rotation.y),
@@ -638,7 +663,7 @@ function run() {
       brake = held("KeyS", "ArrowDown");
     rideSpeed = M.damp(
       rideSpeed,
-      forward ? (brake ? 1.05 : 3.35) : 0,
+      forward ? (brake ? 2.0 : 8.2) : 0,
       brake ? 9 : 3.5,
       dt,
     );
@@ -660,11 +685,11 @@ function run() {
     world.scene.attach(npc.root);
     hero.root.scale.setScalar(1);
     npc.root.scale.setScalar(1);
-    hero.root.position.set(0.55, 23.23, -24.2);
+    hero.root.position.set(0.55, 23.167, -24.2);
     hero.root.rotation.set(0, 2.33, 0);
-    npc.root.position.set(2.02, 23.23, -25.6);
+    npc.root.position.set(2.02, 23.167, -25.6);
     npc.root.rotation.set(0, -0.81, 0);
-    mount.root.position.set(-2.72, 23.23, -23.76);
+    mount.root.position.set(-2.72, 23.167, -23.76);
     mount.root.rotation.y = 0.7;
     rideSpeed = 0;
     snap = true;
@@ -703,6 +728,24 @@ function run() {
     ]);
   }
   function answer(yes) {
+    if (!yes) {
+      setStage("evil-cat");
+      world.evilCat.root.visible = true;
+      world.evilCat.root.position.set(0.12, 23.18, -22.3);
+      world.evilCat.root.rotation.y = 0.25;
+      audio.effect("meow");
+      dialogue("A very evil cat", "MEOWWWWWWWW", [
+        [
+          "Continue",
+          () => {
+            world.evilCat.root.visible = false;
+            decline();
+          },
+        ],
+      ]);
+      snap = true;
+      return;
+    }
     setStage("answer");
     audio.effect(yes ? "win" : "ring");
     dialogue(
@@ -712,6 +755,10 @@ function run() {
         : "ITS OKAY, I UNDERSTAND",
       [["Continue", closeCurtain]],
     );
+  }
+  function decline() {
+    setStage("answer");
+    dialogue("Eugene", "ITS OKAY, I UNDERSTAND", [["Continue", closeCurtain]]);
   }
   function closeCurtain() {
     setStage("ending");
@@ -918,14 +965,17 @@ function run() {
       eye.y += portrait ? 4.4 : 3.8;
       gaze.copy(p).addScaledVector(t, 5.5);
       gaze.y += 1.5;
+    } else if (stage === "evil-cat") {
+      eye.set(portrait ? 1.1 : 1.8, 24.35, -18.6);
+      gaze.set(0.13, 23.89, -22.4);
     } else {
       const proposal = ["proposal", "answer", "ending"].includes(stage);
       if (ringRevealed && proposal && !portrait) {
         eye.set(0.66, 24.72, -20.3);
         gaze.set(0.32, 24.25, -25.1);
       } else if (proposal && !portrait) {
-        eye.set(0.35, 25.35, -17.45);
-        gaze.set(-0.3, 24.37, -25.07);
+        eye.set(-0.25, 25.0, -19.2);
+        gaze.set(-0.1, 24.39, -25.07);
       } else {
         eye.set(
           portrait ? 1.4 : 5.3,
@@ -996,7 +1046,7 @@ function run() {
     const seated =
       place === "forest" ||
       (place === "castle" && ["bridge", "ride", "paused"].includes(stage));
-    const kneel = ["proposal", "answer", "ending"].includes(stage);
+    const kneel = ["proposal", "answer", "ending", "evil-cat"].includes(stage);
     hero.pose(time, {
       walk: walking,
       attack: stage === "fight" ? Math.max(0, 1 - (time - attackAt) / 0.46) : 0,
@@ -1014,7 +1064,8 @@ function run() {
           : 0,
     });
     if (cat?.root.visible) cat.pose(time);
-    if (mount) mount.pose(time, active() ? rideSpeed / 5 : 0);
+    if (world.evilCat?.root.visible) world.evilCat.pose(time);
+    if (mount) mount.pose(time, active() ? rideSpeed / 10.6 : 0);
     if (time > toastUntil) $("toast").hidden = true;
     for (const update of world.updates) update(time);
     followSun(world, mount?.root.position ?? hero.root.position);
@@ -1026,10 +1077,11 @@ function run() {
   opening();
   const chapter = new URLSearchParams(location.search).get("chapter");
   if (chapter) $("eyelids").classList.remove("shut");
-  if (chapter === "proposal") {
+  if (chapter === "proposal" || chapter === "evil-cat") {
     setWorld("castle");
     terrace();
     proposal();
+    if (chapter === "evil-cat") answer(false);
   } else if (chapter === "castle") {
     startCastle();
   } else if (chapter === "forest") {

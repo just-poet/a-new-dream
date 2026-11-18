@@ -1,5 +1,5 @@
 import { build } from "esbuild";
-import { readFile, writeFile, mkdir, cp } from "node:fs/promises";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
 const result = await build({
   entryPoints: ["game.js"],
   bundle: true,
@@ -54,7 +54,6 @@ const html =
   licenses.join("\n") +
   "\n-->";
 await mkdir("../dist", { recursive: true });
-await cp("Assets", "../dist/assets", { recursive: true });
 await writeFile("../dist/index.html", html);
 console.log(
   "Built A New Dream, " + Math.round(Buffer.byteLength(html) / 1024) + " KB",

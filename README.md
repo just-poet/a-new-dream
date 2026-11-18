@@ -1,30 +1,32 @@
 # A New Dream
 
-A 3D browser adventure: escape Gothel with a frying pan, defeat five bandits from horseback, ride up the castle ramp, and choose an answer to Eugene's proposal. Both choices finish with the closing curtain.
+A complete 3D browser fairy tale: escape Gothel with a frying pan, ride a speedy pig-cat through a forest ambush, take the reins to the castle terrace, and answer Eugene's proposal. The No answer summons a mischievous evil cat who says **MEOWWWWWWWW**, followed by Eugene's response and the ending curtain. A dancing character performs a playful bhangra-inspired routine beside the forest trail.
 
 ## Play
 
-[Play A New Dream](https://just-poet.github.io/a-new-dream/). Use a current browser with WebGL 2 and hardware acceleration. The textured characters and scenery download on the loading screen (about 21 MB).
+[Play A New Dream](https://just-poet.github.io/a-new-dream/). Use a browser with WebGL 2 and hardware acceleration. The build is a single HTML file, about 0.9 MB, with no external model or texture downloads.
 
-[Open the proposal chapter](https://just-poet.github.io/a-new-dream/?chapter=proposal). Progress checkpoints let you continue at the forest, castle, or proposal after reloading.
+[Open the proposal](https://just-poet.github.io/a-new-dream/?chapter=proposal) or [meet the evil cat](https://just-poet.github.io/a-new-dream/?chapter=evil-cat). Checkpoints let you continue from the forest, castle, or proposal after a reload.
 
 ## Controls
 
-- WASD or arrow keys: move / steer.
-- Space, scene click or touch button: swing the pan.
-- Shift or Dodge: avoid Gothel.
-- Click/tap the marked bandits to shoot.
-- Hold W / Up: ride. S / Down: slow down.
-- Esc: pause. Sound button: mute / enable sound.
+- WASD / arrow keys: move and steer.
+- Space / scene click / touch button: swing the pan.
+- Shift / Dodge: evade Gothel.
+- Click or tap marked bandits to shoot.
+- Hold W / Up to ride; S / Down to slow down.
+- Escape pauses; the sound button toggles sound.
 
-## Build and run locally
+## Art and animation
 
-From `Source`, run `npm ci`, then `npm run build`. The build writes `dist/index.html` and `dist/assets/`. Serve the repository with `python -m http.server 8000`, then open `http://localhost:8000/dist/`. Keep the assets folder alongside the HTML; loading from a file URL is unsupported.
+The current build uses original procedural 3D character meshes, sculpted facial features, animated eyes, satin clothing, golden hair, rounded foliage, wildflowers, grass, cottage interiors, water, a coastal village, and castle gardens. Characters and props use ground references to avoid hovering. Shared geometry is merged and scenery is instanced for efficient rendering. The animated fairy-tale art is an original interpretation; it does not contain official movie character models.
 
-## Visual assets
+Earlier licensed asset experiments remain under `Source/Assets` with their provenance and licenses, and are not loaded or distributed by the current build.
 
-Textured and rigged Microsoft Rocketbox humans and horse are adapted with fantasy clothing, hair and animation. Trees, undergrowth, flowers, boulders and surface textures come from Poly Haven's CC0 collection. Water uses Three.js. Detailed attribution and licenses are included in `Source/Assets/SOURCES.json` and distributed in `dist/assets/`. Character bases are adapted realistic models rather than replicas of the film models.
+## Build
 
-## Proposal repair
+From `Source`, run `npm ci`, then `npm run build`. The output is `dist/index.html`; serve the repository using `python -m http.server 8000` and open `http://localhost:8000/dist/`. The self-contained build also opens locally without network access.
 
-Closing the eyes now automatically reveals the proposal. Previously the full-screen eyelids covered the Continue button, preventing progress when reduced motion was disabled.
+## Verification
+
+The browser regression exercises the pan fight, all five bandits, faster mount, dancer animation, pause, castle ride, automatic eyes-to-proposal transition, both proposal answers, evil cat, closing curtain, replay, and mobile layout. Sole positions are checked against the house and terrace floors. Public deployment is also checked in a signed-out browser.

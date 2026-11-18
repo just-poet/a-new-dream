@@ -14,15 +14,18 @@ import {
   particles,
 } from "./art.js";
 import { castle } from "./castle.js";
-import { countryside, ocean } from "./detail.js";
+import { countryside, ocean } from "./fairy-detail.js";
 
-const bark = 0x604737,
+const bark = 0x825554,
   leaves = [0x395f48, 0x527a51, 0x5e8656, 0x76985a, 0x88a46b];
 const golden = mat(0xffce82, 1.4);
 
 export function atmosphere(night = false) {
   const scene = new T.Scene();
-  scene.fog = new T.FogExp2(night ? 0x292b3c : 0xbdcfbe, night ? 0.018 : 0.007);
+  scene.fog = new T.FogExp2(
+    night ? 0x292b3c : 0xaad6db,
+    night ? 0.018 : 0.0045,
+  );
   scene.add(
     new T.HemisphereLight(
       night ? 0xa7b8e8 : 0xe2f4ff,
@@ -49,18 +52,13 @@ export function atmosphere(night = false) {
       side: T.BackSide,
       depthWrite: false,
       uniforms: {
-        top: { value: new T.Color(night ? 0x10172b : 0x387fb4) },
-        bottom: { value: new T.Color(night ? 0x7a655e : 0xd0e5e9) },
+        top: { value: new T.Color(night ? 0x10172b : 0x56a9d1) },
+        bottom: { value: new T.Color(night ? 0x7a655e : 0xe4f1df) },
       },
       vertexShader:
         "varying vec3 v;void main(){v=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
       fragmentShader:
-        "varying vec3 v;uniform vec3 top,bottom;float n(vec2 p){return fract(sin(dot(p,vec2(12.989,78.233)))*43758.5453);}float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(n(i),n(i+vec2(1.,0.)),f.x),mix(n(i+vec2(0.,1.)),n(i+1.),f.x),f.y);}void main(){vec3 d=normalize(v);float h=max(0.,d.y);vec3 c=mix(bottom,top,pow(h,.5));vec2 u=d.xz/(.23+h);float clouds=noise(u*2.8)+.5*noise(u*7.2)+.2*noise(u*18.);c=mix(c,vec3(.99,.92,.80),smoothstep(.88,1.29,clouds)*smoothstep(.02,.15,h)*.7);float sun=pow(max(0.,dot(d,normalize(vec3(-.45,.3,-1.)))),160.);c+=sun*vec3(.95,.66,.32);gl_FragColor=vec4(c,1.);#include <tonemapping_fragment>\\n#include <colorspace_fragment>}"
-          .replace(
-            "#include <tonemapping_fragment>",
-            "\n#include <tonemapping_fragment>",
-          )
-          .replaceAll("\\n", "\n"),
+        "varying vec3 v;uniform vec3 top,bottom;void main(){vec3 d=normalize(v);vec3 c=mix(bottom,top,pow(max(0.,d.y),.45));float sun=pow(max(0.,dot(d,normalize(vec3(-.5,.28,-1.)))),140.);c+=sun*vec3(.9,.60,.22);gl_FragColor=vec4(c,1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}",
     }),
     0,
     0,
@@ -294,8 +292,8 @@ export function castleWorld() {
   ocean(world, 0, -1.5, -30, 540, 540);
   const island = group(scene, 0, 0, -24);
   ball(island, 0x6c8580, 0, -0.5, 0, 23, 3, 28);
-  const palace = group(scene, 0, 0, -51);
-  palace.scale.setScalar(1.36);
+  const palace = group(scene, 0, 0, -61);
+  palace.scale.setScalar(1.8);
   castle(palace);
   const mainTower = group(scene, 0, 0, -25);
   shape(mainTower, geo.pipe, 0xbea4a3, 0, 10.5, 0, 4.5, 21, 4.5);
@@ -433,7 +431,17 @@ export function castleWorld() {
     [-4, -22.5],
     [4, -22.5],
   ]) {
-    const pot = shape(scene, geo.post, 0xb47c75, x, 23.5, z, 0.35, 0.57, 0.35);
+    const pot = shape(
+      scene,
+      geo.post,
+      0xb47c75,
+      x,
+      23.445,
+      z,
+      0.35,
+      0.57,
+      0.35,
+    );
     pot.rotation.z = Math.PI;
   }
   const petals = particles(

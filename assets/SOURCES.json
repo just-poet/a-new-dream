@@ -1,0 +1,93 @@
+[
+  {
+    "name": "boulder_01",
+    "source": "https://polyhaven.com/a/boulder_01",
+    "license": "CC0-1.0",
+    "modifications": "Simplified meshes and resized/compressed textures for browsers."
+  },
+  {
+    "name": "shrub_04",
+    "source": "https://polyhaven.com/a/shrub_04",
+    "license": "CC0-1.0",
+    "modifications": "Simplified meshes and resized/compressed textures for browsers."
+  },
+  {
+    "name": "fern_02",
+    "source": "https://polyhaven.com/a/fern_02",
+    "license": "CC0-1.0",
+    "modifications": "Simplified meshes and resized/compressed textures for browsers."
+  },
+  {
+    "name": "island_tree_02",
+    "source": "https://polyhaven.com/a/island_tree_02",
+    "license": "CC0-1.0",
+    "modifications": "Simplified meshes and resized/compressed textures for browsers."
+  },
+  {
+    "name": "grass_medium_01",
+    "source": "https://polyhaven.com/a/grass_medium_01",
+    "license": "CC0-1.0",
+    "modifications": "Simplified meshes and resized/compressed textures for browsers."
+  },
+  {
+    "name": "flower_gazania",
+    "source": "https://polyhaven.com/a/flower_gazania",
+    "license": "CC0-1.0",
+    "modifications": "Simplified meshes and resized/compressed textures for browsers."
+  },
+  {
+    "name": "forest_ground_04",
+    "source": "https://polyhaven.com/a/forest_ground_04",
+    "license": "CC0-1.0",
+    "modifications": "Simplified meshes and resized/compressed textures for browsers."
+  },
+  {
+    "name": "grass_ground",
+    "source": "https://polyhaven.com/a/grass_ground",
+    "license": "CC0-1.0",
+    "modifications": "Simplified meshes and resized/compressed textures for browsers."
+  },
+  {
+    "name": "castle_brick_02_red",
+    "source": "https://polyhaven.com/a/castle_brick_02_red",
+    "license": "CC0-1.0",
+    "modifications": "Simplified meshes and resized/compressed textures for browsers."
+  },
+  {
+    "name": "wood_planks_dirt",
+    "source": "https://polyhaven.com/a/wood_planks_dirt",
+    "license": "CC0-1.0",
+    "modifications": "Simplified meshes and resized/compressed textures for browsers."
+  },
+  {
+    "name": "cobblestone_floor_05",
+    "source": "https://polyhaven.com/a/cobblestone_floor_05",
+    "license": "CC0-1.0",
+    "modifications": "Simplified meshes and resized/compressed textures for browsers."
+  },
+  {
+    "name": "roof_slates_02",
+    "source": "https://polyhaven.com/a/roof_slates_02",
+    "license": "CC0-1.0",
+    "modifications": "Simplified meshes and resized/compressed textures for browsers."
+  },
+  {
+    "name": "Human avatars and saddle horse",
+    "source": "https://github.com/microsoft/Microsoft-Rocketbox",
+    "license": "MIT",
+    "license_file": "ROCKETBOX-LICENSE.md",
+    "original_models": [
+      "Female_Adult_01",
+      "Female_Adult_09",
+      "Male_Adult_01",
+      "Horse_LightBrown_Saddle_01"
+    ],
+    "modifications": "Resized textures, clothing, hair, posing, mesh filtering and horse recoloring."
+  },
+  {
+    "name": "Water normal map",
+    "source": "https://github.com/mrdoob/three.js/blob/dev/examples/textures/waternormals.jpg",
+    "license": "MIT",
+    "license_file": "THREE-LICENSE.txt"
+  }
+]

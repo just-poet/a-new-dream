@@ -14,6 +14,7 @@ import {
   particles,
 } from "./art.js";
 import { castle } from "./castle.js";
+import { countryside, ocean } from "./detail.js";
 
 const bark = 0x604737,
   leaves = [0x395f48, 0x527a51, 0x5e8656, 0x76985a, 0x88a46b];
@@ -37,7 +38,7 @@ export function atmosphere(night = false) {
   scene.add(sun);
   const fill = new T.DirectionalLight(
     night ? 0xd78c60 : 0xbfdcff,
-    night ? 0.38 : 0.6,
+    night ? 0.38 : 0.24,
   );
   fill.position.set(8, 8, 15);
   scene.add(fill);
@@ -84,200 +85,8 @@ export function water(parent, x, y, z, w, h, river = false) {
   };
 }
 
-function flowers(parent, rng, count, range, start = 0) {
-  const stems = [],
-    petals = [],
-    cores = [];
-  const colors = [0xf6b1ce, 0xfbd6a6, 0xb5a2eb, 0xe4a2bc, 0xece9b8];
-  for (let i = 0; i < count; i++) {
-    const x = (i % 2 ? 1 : -1) * (3.2 + rng() * range[0]),
-      z = start - rng() * range[1],
-      h = 0.16 + rng() * 0.43;
-    stems.push([x, h / 2, z, 0.018, h, 0.018, 0x568251]);
-    for (let j = 0; j < 5; j++) {
-      const a = j * 1.256;
-      petals.push([
-        x + Math.cos(a) * 0.054,
-        h,
-        z + Math.sin(a) * 0.054,
-        0.06,
-        0.026,
-        0.039,
-        colors[i % 5],
-        0,
-        -a,
-        0,
-      ]);
-    }
-    cores.push([x, h + 0.008, z, 0.025, 0.026, 0.025, 0xffcc61]);
-  }
-  batch(parent, geo.post, stems);
-  batch(parent, geo.leaf, petals);
-  batch(parent, geo.gem, cores);
-}
-
 export function scenery(world, length = 160, open = false) {
-  const { scene } = world,
-    rng = random(open ? 482 : 594);
-  const ground = shape(
-    scene,
-    new T.PlaneGeometry(150, length + 150, 50, 70),
-    0x6f8955,
-    0,
-    -0.061,
-    -length / 2,
-    1,
-    1,
-    1,
-  );
-  ground.rotation.x = -Math.PI / 2;
-  const p = ground.geometry.attributes.position;
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i),
-      z = p.getY(i) - length / 2,
-      edge = M.smoothstep(Math.abs(x), 5, 18);
-    let y =
-      edge *
-      (0.3 + Math.sin(x * 0.2 + z * 0.12) * 1.7 + Math.cos(z * 0.09) * 1.4);
-    if (open) {
-      y = M.lerp(y, -2.1, M.smoothstep(x, 7.8, 14));
-      const river = 1 - M.smoothstep(Math.abs(x + 18), 4.5, 6.4);
-      y = M.lerp(y, -0.95, river);
-    }
-    p.setZ(i, y);
-  }
-  ground.geometry.computeVertexNormals();
-  const pathPositions = [],
-    pathIndices = [],
-    pathColors = [];
-  for (let i = 0; i <= length + 54; i++) {
-    const z = 25 - i,
-      offset = Math.sin(z * 0.07) * 0.16;
-    for (const s of [-1, 1]) {
-      pathPositions.push(offset + s * 3.23, -0.028, z);
-      const c = new T.Color(i % 3 ? 0xbc9e70 : 0xb5996c);
-      pathColors.push(c.r, c.g, c.b);
-    }
-    if (i < length + 54) {
-      const j = i * 2;
-      pathIndices.push(j, j + 1, j + 2, j + 1, j + 3, j + 2);
-    }
-  }
-  const path = new T.BufferGeometry();
-  path.setAttribute("position", new T.Float32BufferAttribute(pathPositions, 3));
-  path.setAttribute("color", new T.Float32BufferAttribute(pathColors, 3));
-  path.setIndex(pathIndices);
-  path.computeVertexNormals();
-  scene.add(
-    new T.Mesh(
-      path,
-      new T.MeshStandardMaterial({ vertexColors: true, roughness: 1 }),
-    ),
-  );
-  const trunks = [],
-    crowns = [],
-    bushes = [],
-    stones = [];
-  for (let z = 23; z > -length - 38; z -= 4.1) {
-    for (const side of [-1, 1]) {
-      if (open && side === 1) continue;
-      if (open && z > -7) continue;
-      const count = open ? 2 : 3;
-      for (let row = 0; row < count; row++) {
-        const x = side * (5.6 + row * 9 + rng() * 6.9),
-          h = 5.0 + rng() * 6.5,
-          dz = z + rng() * 6;
-        trunks.push([
-          x,
-          h * 0.47,
-          dz,
-          0.17 + rng() * 0.13,
-          h * 0.93,
-          0.2 + rng() * 0.09,
-          bark,
-          0,
-          rng() * 6.28,
-          (rng() - 0.5) * 0.11,
-        ]);
-        for (let j = 0; j < 5; j++) {
-          const a = j * 2.4,
-            r = 0.8 + rng() * 1.8,
-            size = 2.0 + rng() * 2.4;
-          crowns.push([
-            x + Math.sin(a) * r,
-            h * (0.7 + rng() * 0.27),
-            dz + Math.cos(a) * r,
-            size,
-            size * 0.69,
-            size * 0.85,
-            leaves[Math.floor(rng() * 5)],
-            0,
-            a,
-            0.2,
-          ]);
-        }
-      }
-      for (let j = 0; j < 2; j++) {
-        const x = side * (4 + rng() * 5);
-        bushes.push([
-          x,
-          0.22,
-          z,
-          0.4 + rng() * 1.8,
-          0.22 + rng() * 0.6,
-          0.6 + rng() * 1.0,
-          leaves[Math.floor(rng() * 5)],
-          0,
-          rng() * 6.3,
-          0,
-        ]);
-      }
-      stones.push([
-        side * (3.9 + rng() * 3),
-        0.13,
-        z + rng() * 4,
-        0.2 + rng() * 0.35,
-        0.15 + rng() * 0.27,
-        0.28 + rng() * 0.29,
-        0xa5a295,
-        0,
-        rng() * 6.3,
-        0.2,
-      ]);
-    }
-  }
-  batch(scene, geo.post, trunks);
-  batch(scene, geo.leaf, crowns);
-  batch(scene, geo.leaf, bushes);
-  batch(scene, geo.gem, stones);
-  flowers(scene, rng, open ? 750 : 1350, [open ? 12 : 4, length + 42], 20);
-  for (let i = 0; i < 12; i++) {
-    const side = i % 2 ? 1 : -1;
-    if (open && side > 0) continue;
-    const x = side * (36 + rng() * 42),
-      z = -65 - rng() * (length + 65);
-    shape(
-      scene,
-      geo.leaf,
-      [0x829b8e, 0x7a98a0, 0x9ba9a0][i % 3],
-      x,
-      3,
-      z,
-      12 + rng() * 14,
-      10 + rng() * 20,
-      14 + rng() * 11,
-    ).rotation.y = rng() * 6.28;
-  }
-  const dust = particles(
-    scene,
-    153,
-    open ? 230 : 650,
-    [30, 7, length + 50, 24],
-    [0xffe8ac, 0xf5c4e6, 0xe7f5bc],
-  );
-  world.updates.push((t) => {
-    dust.material.uniforms.time.value = t;
-  });
+  countryside(world, length, open);
 }
 
 export function oldHouse() {
@@ -453,8 +262,6 @@ export function oldHouse() {
 export function valley() {
   const world = atmosphere();
   scenery(world, 115, true);
-  world.updates.push(water(world.scene, 74, -1.28, -67, 132, 210));
-  world.updates.push(water(world.scene, -18, -0.32, -36, 10, 140, true));
   const palace = group(world.scene, 24, -0.8, -86);
   palace.scale.setScalar(1.46);
   castle(palace);
@@ -469,24 +276,11 @@ export function valley() {
         -s * 0.31;
   }
   box(home, 0x48362f, 0, 1.1, 2.43, 1.22, 2.2, 0.1);
-  for (let i = 0; i < 6; i++)
-    shape(
-      world.scene,
-      geo.leaf,
-      0x9cad92,
-      -12 - i * 3,
-      0.2,
-      -8 - i * 8,
-      2,
-      1.1,
-      3,
-    ).rotation.y = i;
   return world;
 }
 export function ambushForest() {
   const world = atmosphere();
   scenery(world, 160);
-  world.updates.push(water(world.scene, 35, -1.2, -80, 25, 240, true));
   const c = group(world.scene, 3, -2, -194);
   c.scale.setScalar(1.63);
   castle(c);
@@ -497,7 +291,7 @@ export function castleWorld() {
   const world = atmosphere(),
     { scene } = world;
   scene.fog.density = 0.0035;
-  world.updates.push(water(scene, 0, -1.5, -30, 400, 400));
+  ocean(world, 0, -1.5, -30, 540, 540);
   const island = group(scene, 0, 0, -24);
   ball(island, 0x6c8580, 0, -0.5, 0, 23, 3, 28);
   const palace = group(scene, 0, 0, -51);
@@ -641,19 +435,6 @@ export function castleWorld() {
   ]) {
     const pot = shape(scene, geo.post, 0xb47c75, x, 23.5, z, 0.35, 0.57, 0.35);
     pot.rotation.z = Math.PI;
-    for (let j = 0; j < 11; j++) {
-      const a = j * 2.399;
-      ball(
-        scene,
-        [0xe6a7c4, 0xe9c7eb, 0xffd7a2][j % 3],
-        x + Math.cos(a) * 0.25,
-        23.88 + Math.sin(j) * 0.14,
-        z + Math.sin(a) * 0.25,
-        0.12,
-        0.11,
-        0.12,
-      );
-    }
   }
   const petals = particles(
     scene,

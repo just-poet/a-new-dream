@@ -136,7 +136,7 @@ function mergeCastleStonework(island) {
       ? mesh.geometry.toNonIndexed()
       : mesh.geometry.clone();
     geometry.applyMatrix4(toIsland.clone().multiply(mesh.matrixWorld));
-    geometry.deleteAttribute("uv");
+
     groups.get(mesh.material).push(geometry);
     remove.push(mesh);
   });
@@ -150,6 +150,7 @@ function mergeCastleStonework(island) {
 
 export function castle(scene) {
   const island = group(scene);
+  island.name = "castle-architecture";
   const rng = random(228);
   const rock = [];
   for (let i = 0; i < 49; i++) {

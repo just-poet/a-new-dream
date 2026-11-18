@@ -1,6 +1,16 @@
 import * as T from "three";
 import { M, geo, mat, group, shape, ball, glow } from "./art.js";
-import { human, horse, divineCat } from "./characters.js";
+import { divineCat } from "./characters.js";
+import { realHuman as human, realHorse as horse } from "./real-characters.js";
+import { loadAssets } from "./assets.js";
+import {
+  prepareEnvironment,
+  lighting,
+  followSun,
+  textureRoom,
+  textureCastle,
+  texturePalaces,
+} from "./detail.js";
 import { oldHouse, valley, ambushForest, castleWorld } from "./world.js";
 
 const $ = (id) => document.getElementById(id);
@@ -28,7 +38,28 @@ try {
   $("eyelids").classList.remove("shut");
   $("sound").hidden = true;
 }
-if (renderer) run();
+if (renderer) {
+  $("choices").replaceChildren();
+  $("line").textContent = "A new dream";
+  $("detail").textContent = "Loading the world…";
+  loadAssets((count, total) => {
+    $("detail").textContent =
+      "Loading the world… " + Math.round((count / total) * 100) + "%";
+  })
+    .then(() => {
+      prepareEnvironment(renderer);
+      run();
+    })
+    .catch((error) => {
+      console.error(error);
+      $("line").textContent = "The world could not finish loading.";
+      $("detail").textContent = "Check your connection, then try again.";
+      const retry = document.createElement("button");
+      retry.textContent = "Try again";
+      retry.onclick = () => location.reload();
+      $("choices").replaceChildren(retry);
+    });
+}
 
 function soundEngine() {
   let context,
@@ -121,7 +152,9 @@ function run() {
     slowFrames = 0;
   renderer.setPixelRatio(resolution);
   renderer.toneMapping = T.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.09;
+  renderer.toneMappingExposure = 0.93;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = T.PCFShadowMap;
   renderer.outputColorSpace = T.SRGBColorSpace;
   $("viewport").append(renderer.domElement);
   const camera = new T.PerspectiveCamera(
@@ -192,6 +225,10 @@ function run() {
         forest: ambushForest,
         castle: castleWorld,
       }[name]();
+      if (name === "room") textureRoom(next);
+      if (name === "castle") textureCastle(next);
+      texturePalaces(next.scene);
+      lighting(next.scene, name === "room");
       next.hero = human(next.scene);
       if (name === "room") {
         next.npc = human(next.scene, "gothel");
@@ -310,6 +347,7 @@ function run() {
   function catAppears() {
     setStage("cat");
     cat.root.visible = true;
+    cat.root.scale.setScalar(0.7);
     cat.root.position.set(1.62, 1.4, -0.36);
     audio.effect("ring");
     dialogue(
@@ -433,12 +471,12 @@ function run() {
   function meetEugene() {
     setWorld("outside");
     setStage("meeting");
-    hero.root.position.set(0.12, 0, 1.25);
+    hero.root.position.set(1.44, 0, 1.25);
     hero.root.rotation.set(0, Math.PI * 0.27, 0);
     hero.weapon("none");
-    npc.root.position.set(1.68, 0, -0.18);
+    npc.root.position.set(3.02, 0, -0.18);
     npc.root.rotation.set(0, -0.75, 0);
-    mount.root.position.set(4.08, 0, -1.2);
+    mount.root.position.set(5.0, 0, -1.2);
     mount.root.rotation.y = -0.35;
     dialogue(
       "Eugene",
@@ -457,15 +495,16 @@ function run() {
   }
   function seatRiders(front) {
     mount.riders.add(hero.root, npc.root);
-    hero.root.position.set(0, 1.06, front ? -0.24 : 0.44);
+    hero.root.position.set(0, mount.riderHeight ?? 1.06, front ? -0.26 : 0.44);
     hero.root.rotation.set(0, Math.PI, 0);
     hero.root.scale.setScalar(0.82);
-    npc.root.position.set(0, 1.07, front ? 0.5 : -0.27);
+    npc.root.position.set(0, mount.riderHeight ?? 1.07, front ? 0.51 : -0.29);
     npc.root.rotation.set(0, Math.PI, 0);
     npc.root.scale.setScalar(0.84);
   }
 
   function startForest() {
+    localStorage.setItem("new-dream-checkpoint", "forest");
     setWorld("forest");
     setStage("shoot");
     journey = 0;
@@ -558,6 +597,7 @@ function run() {
     }
   }
   function startCastle() {
+    localStorage.setItem("new-dream-checkpoint", "castle");
     setWorld("castle");
     setStage("bridge");
     journey = 0;
@@ -615,6 +655,7 @@ function run() {
 
   function terrace() {
     setStage("terrace");
+    localStorage.setItem("new-dream-checkpoint", "proposal");
     world.scene.attach(hero.root);
     world.scene.attach(npc.root);
     hero.root.scale.setScalar(1);
@@ -634,12 +675,11 @@ function run() {
   function closeEyes() {
     setStage("eyes");
     $("eyelids").classList.add("shut");
-    setTimeout(
+    window.setTimeout(
       () => {
-        if (stage !== "eyes") return;
-        dialogue("Eugene", "Ready, princess?", [["Continue", proposal]]);
+        if (stage === "eyes") proposal();
       },
-      reduced ? 20 : 1900,
+      reduced ? 30 : 1850,
     );
   }
   function proposal() {
@@ -707,11 +747,26 @@ function run() {
     dialogue(
       "",
       "A new dream",
-      [["Open your eyes", awaken]],
+      [
+        ["Open your eyes", awaken],
+        ...(localStorage.getItem("new-dream-checkpoint")
+          ? [["Continue adventure", resumeAdventure]]
+          : []),
+      ],
       "Wake up, princess.",
     );
   }
 
+  function resumeAdventure() {
+    $("eyelids").classList.remove("shut");
+    const checkpoint = localStorage.getItem("new-dream-checkpoint");
+    if (checkpoint === "proposal") {
+      setWorld("castle");
+      terrace();
+      proposal();
+    } else if (checkpoint === "castle") startCastle();
+    else startForest();
+  }
   function pause() {
     if (stage === "paused") {
       setStage(pausedStage);
@@ -846,11 +901,11 @@ function run() {
       }
     } else if (place === "outside") {
       eye.set(
-        portrait ? 1.9 : 2.53,
-        portrait ? 2.48 : 2.68,
-        portrait ? 9.3 : 6.8,
+        portrait ? 2.7 : 3.3,
+        portrait ? 2.45 : 2.05,
+        portrait ? 9.3 : 6.6,
       );
-      gaze.set(1.0, 1.47, -3.65);
+      gaze.set(portrait ? 2.12 : 1.2, 1.3, -1.8);
     } else if (place === "forest") {
       const p = mount.root.position;
       eye.set(p.x + 2.1, portrait ? 3.95 : 3.56, p.z + (portrait ? 9.7 : 7.1));
@@ -865,7 +920,10 @@ function run() {
       gaze.y += 1.5;
     } else {
       const proposal = ["proposal", "answer", "ending"].includes(stage);
-      if (proposal && !portrait) {
+      if (ringRevealed && proposal && !portrait) {
+        eye.set(0.66, 24.72, -20.3);
+        gaze.set(0.32, 24.25, -25.1);
+      } else if (proposal && !portrait) {
         eye.set(0.35, 25.35, -17.45);
         gaze.set(-0.3, 24.37, -25.07);
       } else {
@@ -959,11 +1017,25 @@ function run() {
     if (mount) mount.pose(time, active() ? rideSpeed / 5 : 0);
     if (time > toastUntil) $("toast").hidden = true;
     for (const update of world.updates) update(time);
+    followSun(world, mount?.root.position ?? hero.root.position);
     audio.tick(stage);
     aim(dt);
     renderer.render(world.scene, camera);
     requestAnimationFrame(frame);
   }
   opening();
+  const chapter = new URLSearchParams(location.search).get("chapter");
+  if (chapter) $("eyelids").classList.remove("shut");
+  if (chapter === "proposal") {
+    setWorld("castle");
+    terrace();
+    proposal();
+  } else if (chapter === "castle") {
+    startCastle();
+  } else if (chapter === "forest") {
+    startForest();
+  } else if (chapter === "outside") {
+    meetEugene();
+  }
   requestAnimationFrame(frame);
 }
